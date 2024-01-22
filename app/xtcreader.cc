@@ -1052,6 +1052,37 @@ public:
     printf("\n");
     printf("\tframe size: %d\n", jungfrauConfig.frameSize());
   }
+  void process(const DetInfo &, const Jungfrau::ConfigV4 &jungfrauConfig)
+  {
+    printf("*** Processing Jungfrau::ConfigV4 object\n");
+    printf("\tnumber of modules: %d\n", jungfrauConfig.numberOfModules());
+    for (unsigned n=0; n<jungfrauConfig.numberOfModules(); n++) {
+      printf("\tmodule %u:\n", n);
+      const Jungfrau::ModuleConfigV1& modConfig = jungfrauConfig.moduleConfig(n);
+      printf("\t\tserial number: %#" PRIx64 "\n", modConfig.serialNumber());
+      printf("\t\tsoftware version: %#" PRIx64 "\n", modConfig.moduleVersion());
+      printf("\t\tfirmware version: %#" PRIx64 "\n", modConfig.firmwareVersion());
+    }
+    printf("\tspeedMode: ");
+    switch (jungfrauConfig.speedMode()) {
+      case Jungfrau::ConfigV4::Quarter: printf("Quarter"); break;
+      case Jungfrau::ConfigV4::Half: printf("Half"); break;
+      default: printf("Unrecognized (%d)", (int)jungfrauConfig.speedMode()); break;
+    }
+    printf("\n");
+    printf("\tgainMode: ");
+    switch (jungfrauConfig.gainMode()) {
+      case Jungfrau::ConfigV4::Normal: printf("Normal"); break;
+      case Jungfrau::ConfigV4::FixedGain1: printf("FixedGain1"); break;
+      case Jungfrau::ConfigV4::FixedGain2: printf("FixedGain2"); break;
+      case Jungfrau::ConfigV4::ForcedGain1: printf("ForcedGain1"); break;
+      case Jungfrau::ConfigV4::ForcedGain2: printf("ForcedGain2"); break;
+      case Jungfrau::ConfigV4::HighGain0: printf("HighGain0"); break;
+      default: printf("Unrecognized (%d)", (int)jungfrauConfig.gainMode()); break;
+    }
+    printf("\n");
+    printf("\tframe size: %d\n", jungfrauConfig.frameSize());
+  }
   void process(const DetInfo &, const Jungfrau::ElementV1 &)
   {
     printf("*** Processing Jungfrau::ElementV1 object\n");
@@ -1801,22 +1832,85 @@ public:
     printf("\tsensor: %u\n", uxiConfig.sensorType());
     printf("\ttime on:\n");
     ndarray<const uint32_t, 1> timeOn = uxiConfig.timeOn();
-    for (unsigned i=0; i<Uxi::ConfigV1::NumberOfSides; i++) {
+    for (unsigned i=0; i<Uxi::ConfigV2::NumberOfSides; i++) {
       printf("\t\tside %u: %u ns\n", i, timeOn[i]);
     }
     printf("\ttime off:\n");
     ndarray<const uint32_t, 1> timeOff = uxiConfig.timeOff();
-    for (unsigned i=0; i<Uxi::ConfigV1::NumberOfSides; i++) {
+    for (unsigned i=0; i<Uxi::ConfigV2::NumberOfSides; i++) {
       printf("\t\tside %u: %u ns\n", i, timeOff[i]);
     }
     printf("\tdelay:\n");
     ndarray<const uint32_t, 1> delay = uxiConfig.delay();
-    for (unsigned i=0; i<Uxi::ConfigV1::NumberOfSides; i++) {
+    for (unsigned i=0; i<Uxi::ConfigV2::NumberOfSides; i++) {
       printf("\t\tside %u: %u ns\n", i, delay[i]);
     }
     printf("\tpots:\n");
     ndarray<const double, 1> pots = uxiConfig.pots();
-    for (unsigned i=0; i<Uxi::ConfigV1::NumberOfPots; i++) {
+    for (unsigned i=0; i<Uxi::ConfigV2::NumberOfPots; i++) {
+      printf("\t\tpot %u (readonly, tuned, value): %s, %s, %g\n",
+             i,
+             uxiConfig.potIsReadOnly((uint8_t) i) ? "true" : "false",
+             uxiConfig.potIsTuned((uint8_t) i) ? "true" : "false",
+             pots[i]);
+    }
+    printf("\tnpixels per frame: %u\n", uxiConfig.numPixelsPerFrame());
+    printf("\tnpixels total: %u\n", uxiConfig.numPixels());
+    printf("\tframe size: %u\n", uxiConfig.frameSize());
+
+  }
+  void process(const DetInfo &, const Uxi::ConfigV3 &uxiConfig)
+  {
+    printf("*** Processing Uxi::ConfigV3 object\n");
+    printf("\troi: %s\n", uxiConfig.roiEnable() ? "on" : "off");
+    if (uxiConfig.roiEnable()) {
+      const Uxi::RoiCoord& roirows = uxiConfig.roiRows();
+      printf("\t\trows (first last): %u, %u\n", roirows.first(), roirows.last());
+      const Uxi::RoiCoord& roiframes = uxiConfig.roiFrames();
+      printf("\t\tframe (first last): %u, %u\n", roiframes.first(), roiframes.last());
+    }
+    printf("\toscillator mode: ");
+    switch (uxiConfig.oscillator()) {
+      case Uxi::ConfigV3::RelaxationOsc:
+        printf("RelaxationOsc");
+        break;
+      case Uxi::ConfigV3::RingOscWithCaps:
+        printf("RingOscWithCaps");
+        break;
+      case Uxi::ConfigV3::RingOscNoCaps:
+        printf("RingOscNoCaps");
+        break;
+      case Uxi::ConfigV3::ExternalClock:
+        printf("ExternalClock");
+        break;
+      default:
+        printf("Unrecognized (%d)", (int)uxiConfig.oscillator());
+        break;
+    }
+    printf("\n");
+    printf("\twidth: %u\n", uxiConfig.width());
+    printf("\theight: %u\n", uxiConfig.height());
+    printf("\tnframes: %u\n", uxiConfig.numberOfFrames());
+    printf("\tbytes: %u\n", uxiConfig.numberOFBytesPerPixel());
+    printf("\tsensor: %u\n", uxiConfig.sensorType());
+    printf("\ttime on:\n");
+    ndarray<const uint32_t, 1> timeOn = uxiConfig.timeOn();
+    for (unsigned i=0; i<Uxi::ConfigV3::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, timeOn[i]);
+    }
+    printf("\ttime off:\n");
+    ndarray<const uint32_t, 1> timeOff = uxiConfig.timeOff();
+    for (unsigned i=0; i<Uxi::ConfigV3::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, timeOff[i]);
+    }
+    printf("\tdelay:\n");
+    ndarray<const uint32_t, 1> delay = uxiConfig.delay();
+    for (unsigned i=0; i<Uxi::ConfigV3::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, delay[i]);
+    }
+    printf("\tpots:\n");
+    ndarray<const double, 1> pots = uxiConfig.pots();
+    for (unsigned i=0; i<Uxi::ConfigV3::NumberOfPots; i++) {
       printf("\t\tpot %u (readonly, tuned, value): %s, %s, %g\n",
              i,
              uxiConfig.potIsReadOnly((uint8_t) i) ? "true" : "false",
@@ -2398,6 +2492,9 @@ public:
       case 3:
         process(info, *(const Jungfrau::ConfigV3*)(xtc->payload()));
         break;
+      case 4:
+        process(info, *(const Jungfrau::ConfigV4*)(xtc->payload()));
+        break;
       default:
         printf("Unsupported Jungfrau Config version %d\n", version);
         break;
@@ -2571,6 +2668,9 @@ public:
         break;
       case 2:
         process(info, *(const Uxi::ConfigV2*)(xtc->payload()));
+        break;
+      case 3:
+        process(info, *(const Uxi::ConfigV3*)(xtc->payload()));
         break;
       default:
         printf("Unsupported Uxi Config version %d\n", version);
