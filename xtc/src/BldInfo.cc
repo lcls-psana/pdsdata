@@ -128,7 +128,8 @@ const char* BldInfo::name(const BldInfo& src){
     "XPP-ALC-DIO",
     "XCS-USR-DIO",
     "CXI-USR-DIO",
-    "MEC-USR-DIO"
+    "MEC-USR-DIO",
+    "MFX-USB-ENCODER-01"
   };
   return (src.type() < NumberOf ? _typeNames[src.type()] : "-Invalid-");
 }
