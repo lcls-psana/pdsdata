@@ -1,3 +1,4 @@
+2024-May-09 ddamiani    Tag V10-01-01.  Added new beammon bld for XRT - HxxDg1BeamMon
 2024-Jan-22 ddamiani    Tag V10-01-00.  Added ConfigV3 for Uxi, ConfigV4 for Jungfrau, and a usb encoder bld for MFX.
 2023-Dec-05 dubrovin    Tag V10-00-00.  Move from svn to github, svn co file:///afs/slac/g/pcds/svn/pdsdata/tags/V09-04-00 pdsdata
 2023-Oct-07 ddamiani    Tag V09-04-00.  Added ConfigV2 for Uxi.

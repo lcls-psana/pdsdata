@@ -106,6 +106,7 @@ namespace Pds {
                 CxiUsrDio        = 92,
                 MecUsrDio        = 93,
                 MfxUsbEncoder01  = 94,
+                HxxDg1BeamMon    = 95,
                 NumberOf };
 
     BldInfo() {}
