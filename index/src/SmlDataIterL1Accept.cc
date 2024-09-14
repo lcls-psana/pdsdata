@@ -16,11 +16,30 @@ int SmlDataIterL1Accept::process(Xtc * xtc)
   Level::Type     level             = xtc->src.level();
   bool            bStopUpdate       = false;
   
-  if (xtc->damage.value() & (1<<Damage::IncompleteContribution)) 
-  {
-    _iterationOk = false;
-    return SmlDataIterL1Accept::Stop;
-  }
+  /*
+    cpo commented out this code on 09/13/24 since I believe it is too
+    conservative. by setting _iterationOk to false it caused
+    smldata.cc (and presumably the real daq) to throw away the damaged
+    L1Accept entirely in the .smd.xtc file, which negatively impacted
+    MEC one-event runs, for example. i looked at this code for a
+    couple of days and believe it is not necessary: when the .smd.xtc
+    files are created the xtc with IncompleteContribution damage will
+    have a corresponding xtc in the .smd.xtc file with TypeId
+    Id_SmlDataProxy (our usual pattern for lcls1) that will also have
+    IncompleteContribution damage. then XtcIterator::iterate() will
+    ensure that that xtc is not looked at by anybody, since it
+    explicitly ignores every xtc with IncompleteContribution
+    damage. there is a chance i am missing a corner case: time will
+    tell.  this change was tested on mecl1042523-r0286-s01-c00.xtc
+    that had 1 event with 3 alvium camera images in it, one of which
+    had IncompleteContribution damage.
+   */
+
+  // if (xtc->damage.value() & (1<<Damage::IncompleteContribution))
+  // {
+  //   _iterationOk = false;
+  //   return SmlDataIterL1Accept::Stop;
+  // }
 
   if (xtc->extent < sizeof(Xtc) ||
       (xtc->extent&3) ||
