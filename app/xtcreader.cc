@@ -124,8 +124,40 @@ public:
   void process(const DetInfo&, const Encoder::ConfigV1&) {
     printf("*** Processing Encoder config object\n");
   }
-  void process(const DetInfo&, const Opal1k::ConfigV1&) {
+  void process(const DetInfo&, const Opal1k::ConfigV1& opalConfig) {
     printf("*** Processing Opal1000 config object\n");
+    printf("\tblack level: %u\n", opalConfig.black_level());
+    printf("\tgain percent: %u\n", opalConfig.gain_percent());
+    printf("\tdepth mode: ");
+    switch (opalConfig.output_resolution()) {
+        case Opal1k::ConfigV1::Eight_bit:  printf("Eight bit"); break;
+        case Opal1k::ConfigV1::Ten_bit:    printf("Ten bit"); break;
+        case Opal1k::ConfigV1::Twelve_bit: printf("Twelve bit"); break;
+        default: printf("Unrecognized (%d)", (int)opalConfig.output_resolution()); break;
+    }
+    printf(" (%u)\n", opalConfig.output_resolution_bits());
+    printf("\tvertical binning: ");
+    switch (opalConfig.vertical_binning()) {
+        case Opal1k::ConfigV1::x1: printf("x1"); break;
+        case Opal1k::ConfigV1::x2: printf("x2"); break;
+        case Opal1k::ConfigV1::x4: printf("x4"); break;
+        case Opal1k::ConfigV1::x8: printf("x8"); break;
+        default: printf("Unrecognized (%d)", (int)opalConfig.vertical_binning()); break;
+    }
+    printf("\n");
+    printf("\tmirroring: ");
+    switch (opalConfig.output_mirroring()) {
+        case Opal1k::ConfigV1::None: printf("None"); break;
+        case Opal1k::ConfigV1::HFlip: printf("HFlip"); break;
+        case Opal1k::ConfigV1::VFlip: printf("VFlip"); break;
+        case Opal1k::ConfigV1::HVFlip: printf("HVFlip"); break;
+        default: printf("Unrecognized (%d)", (int)opalConfig.output_mirroring()); break;
+    }
+    printf("\n");
+    printf("\tvertical remapping: %u\n", opalConfig.vertical_remapping());
+    printf("\toutput lookup table enabled: %u\n", opalConfig.output_lookup_table_enabled());
+    printf("\tdefect pixel correction enabled: %u\n", opalConfig.defect_pixel_correction_enabled());
+    printf("\tnumber of defect pixels: %u\n", opalConfig.number_of_defect_pixels());
   }
   void process(const DetInfo&, const Camera::FrameFexConfigV1&) {
     printf("*** Processing frame feature extraction config object\n");
