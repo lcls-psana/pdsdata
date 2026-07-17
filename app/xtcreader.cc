@@ -1954,6 +1954,93 @@ public:
     printf("\tframe size: %u\n", uxiConfig.frameSize());
 
   }
+  void process(const DetInfo &, const Uxi::ConfigV4 &uxiConfig)
+  {
+    printf("*** Processing Uxi::ConfigV4 object\n");
+    printf("\troi: %s\n", uxiConfig.roiEnable() ? "on" : "off");
+    if (uxiConfig.roiEnable()) {
+      const Uxi::RoiCoord& roirows = uxiConfig.roiRows();
+      printf("\t\trows (first last): %u, %u\n", roirows.first(), roirows.last());
+      const Uxi::RoiCoord& roiframes = uxiConfig.roiFrames();
+      printf("\t\tframe (first last): %u, %u\n", roiframes.first(), roiframes.last());
+    }
+    printf("\toscillator mode: ");
+    switch (uxiConfig.oscillator()) {
+      case Uxi::ConfigV4::RelaxationOsc:
+        printf("RelaxationOsc");
+        break;
+      case Uxi::ConfigV4::RingOscWithCaps:
+        printf("RingOscWithCaps");
+        break;
+      case Uxi::ConfigV4::RingOscNoCaps:
+        printf("RingOscNoCaps");
+        break;
+      case Uxi::ConfigV4::ExternalClock:
+        printf("ExternalClock");
+        break;
+      default:
+        printf("Unrecognized (%d)", (int)uxiConfig.oscillator());
+        break;
+    }
+    printf("\n");
+    printf("\twidth: %u\n", uxiConfig.width());
+    printf("\theight: %u\n", uxiConfig.height());
+    printf("\tnframes: %u\n", uxiConfig.numberOfFrames());
+    printf("\tbytes: %u\n", uxiConfig.numberOFBytesPerPixel());
+    printf("\tsensor: %u\n", uxiConfig.sensorType());
+    printf("\ttiming mode: ");
+    switch (uxiConfig.timingMode()) {
+      case Uxi::ConfigV4::BasicTiming:
+        printf("BasicTiming");
+        break;
+      case Uxi::ConfigV4::ArbitraryTiming:
+        printf("ArbitraryTiming");
+        break;
+      case Uxi::ConfigV4::ManualTiming:
+        printf("ManualTiming");
+        break;
+      default:
+        printf("Unrecognized (%d)", (int)uxiConfig.timingMode());
+        break;
+    }
+    printf("\n");
+    printf("\ttime on:\n");
+    ndarray<const uint32_t, 1> timeOn = uxiConfig.timeOn();
+    for (unsigned i=0; i<Uxi::ConfigV4::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, timeOn[i]);
+    }
+    printf("\ttime off:\n");
+    ndarray<const uint32_t, 1> timeOff = uxiConfig.timeOff();
+    for (unsigned i=0; i<Uxi::ConfigV4::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, timeOff[i]);
+    }
+    printf("\tdelay:\n");
+    ndarray<const uint32_t, 1> delay = uxiConfig.delay();
+    for (unsigned i=0; i<Uxi::ConfigV4::NumberOfSides; i++) {
+      printf("\t\tside %u: %u ns\n", i, delay[i]);
+    }
+    printf("\tpots:\n");
+    ndarray<const double, 1> pots = uxiConfig.pots();
+    for (unsigned i=0; i<Uxi::ConfigV4::NumberOfPots; i++) {
+      printf("\t\tpot %u (readonly, tuned, value): %s, %s, %g\n",
+             i,
+             uxiConfig.potIsReadOnly((uint8_t) i) ? "true" : "false",
+             uxiConfig.potIsTuned((uint8_t) i) ? "true" : "false",
+             pots[i]);
+    }
+    printf("\tnum registers: %u\n", uxiConfig.numberOfRegisters());
+    if (uxiConfig.numberOfRegisters() > 0) {
+      printf("\tregisters:\n");
+      ndarray<const Uxi::Register, 1> registers = uxiConfig.registers();
+      for (unsigned i=0; i<uxiConfig.numberOfRegisters(); i++) {
+        printf("\t\t%s: 0x%08x\n", registers[i].name(), registers[i].value());
+      }
+    }
+    printf("\tnpixels per frame: %u\n", uxiConfig.numPixelsPerFrame());
+    printf("\tnpixels total: %u\n", uxiConfig.numPixels());
+    printf("\tframe size: %u\n", uxiConfig.frameSize());
+
+  }
   void process(const DetInfo &, const Uxi::FrameV1 &uxiFrame)
   {
     printf("*** Processing Uxi::FrameV1 object\n");
@@ -2703,6 +2790,9 @@ public:
         break;
       case 3:
         process(info, *(const Uxi::ConfigV3*)(xtc->payload()));
+        break;
+      case 4:
+        process(info, *(const Uxi::ConfigV4*)(xtc->payload()));
         break;
       default:
         printf("Unsupported Uxi Config version %d\n", version);

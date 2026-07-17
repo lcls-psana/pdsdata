@@ -90,5 +90,149 @@ std::ostream& operator<<(std::ostream& str, Uxi::ConfigV3::OscMode enval) {
   }
   return str << val;
 }
+ConfigV4::ConfigV4(Uxi::ConfigV4::RoiMode arg__roiEnable, const Uxi::RoiCoord& arg__roiRows, const Uxi::RoiCoord& arg__roiFrames, Uxi::ConfigV4::OscMode arg__oscillator, uint32_t arg__width, uint32_t arg__height, uint32_t arg__numberOfFrames, uint32_t arg__numberOfBytesPerPixel, uint32_t arg__sensorType, Uxi::ConfigV4::TimingMode arg__timingMode, const uint32_t* arg__timingSequence, uint32_t arg__readOnlyPots, const double* arg__pots, uint32_t arg__numberOfRegisters, const Uxi::Register* arg__registers)
+    : _roiEnable(arg__roiEnable), _roiRows(arg__roiRows), _roiFrames(arg__roiFrames), _oscillator(arg__oscillator), _width(arg__width), _height(arg__height), _numberOfFrames(arg__numberOfFrames), _numberOfBytesPerPixel(arg__numberOfBytesPerPixel), _sensorType(arg__sensorType), _timingMode(arg__timingMode), _readOnlyPots(arg__readOnlyPots), _numberOfRegisters(arg__numberOfRegisters)
+{
+  if (arg__timingSequence) std::copy(arg__timingSequence, arg__timingSequence+(80), &_timingSequence[0][0]);
+  if (arg__pots) std::copy(arg__pots, arg__pots+(13), &_pots[0]);
+  if (arg__registers and (this->numberOfRegisters())) {
+    ptrdiff_t offset = 472;
+    Uxi::Register* data = reinterpret_cast<Uxi::Register*>(((char*)this)+offset);
+    std::copy(arg__registers, arg__registers+(this->numberOfRegisters()), data);
+  }
+}
+uint32_t
+ConfigV4::frameSize() const {
+  return this->numPixels()*this->numberOFBytesPerPixel();
+}
+ndarray<const uint32_t, 1>
+ConfigV4::timeArray(Uxi::ConfigV4::BasicTimingIdx idx) const {
+  
+    ndarray<uint32_t,1> timeArray = make_ndarray<uint32_t>(NumberOfSides);
+    if (this->timingMode() == BasicTiming) {
+      for (uint32_t side=0; side<NumberOfSides; side++) {
+        timeArray[side] = this->timingSequence()(side, idx);
+      }
+    } else {
+      for (uint32_t* it=timeArray.begin(); it!=timeArray.end(); it++) {
+        *it = 0;
+      }
+    }
+    return timeArray;
+
+}
+ndarray<const uint32_t, 1>
+ConfigV4::timeOn() const {
+  
+    return this->timeArray(Open);
+
+}
+ndarray<const uint32_t, 1>
+ConfigV4::timeOff() const {
+  
+    return this->timeArray(Closed);
+
+}
+ndarray<const uint32_t, 1>
+ConfigV4::delay() const {
+  
+    return this->timeArray(Delay);
+
+}
+ndarray<const uint32_t, 1>
+ConfigV4::timing(uint32_t side) const {
+  
+    unsigned size = 0;
+    switch (this->timingMode()) {
+    case  BasicTiming:
+      size = 3;
+      break;
+    case ArbitraryTiming:
+      for (unsigned i=1; i<MaxTimingSequence; i++) {
+        size++;
+        if (this->timingSequence()(side, i) == 0) {
+          break;
+        }
+      }
+      break;
+    case ManualTiming:
+      size = MaxManualShutterSequence;
+      break;
+    }
+    if (size > 0) {
+      return make_ndarray(this->timingSequence().data() + side * MaxTimingSequence, size);
+    } else {
+      return ndarray<const uint32_t, 1>();
+    }
+
+}
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::RoiMode enval) {
+  const char* val;
+  switch (enval) {
+  case Uxi::ConfigV4::Off:
+    val = "Off";
+    break;
+  case Uxi::ConfigV4::On:
+    val = "On";
+    break;
+  default:
+    return str << "RoiMode(" << int(enval) << ")";
+  }
+  return str << val;
+}
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::OscMode enval) {
+  const char* val;
+  switch (enval) {
+  case Uxi::ConfigV4::RelaxationOsc:
+    val = "RelaxationOsc";
+    break;
+  case Uxi::ConfigV4::RingOscWithCaps:
+    val = "RingOscWithCaps";
+    break;
+  case Uxi::ConfigV4::RingOscNoCaps:
+    val = "RingOscNoCaps";
+    break;
+  case Uxi::ConfigV4::ExternalClock:
+    val = "ExternalClock";
+    break;
+  default:
+    return str << "OscMode(" << int(enval) << ")";
+  }
+  return str << val;
+}
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::TimingMode enval) {
+  const char* val;
+  switch (enval) {
+  case Uxi::ConfigV4::BasicTiming:
+    val = "BasicTiming";
+    break;
+  case Uxi::ConfigV4::ArbitraryTiming:
+    val = "ArbitraryTiming";
+    break;
+  case Uxi::ConfigV4::ManualTiming:
+    val = "ManualTiming";
+    break;
+  default:
+    return str << "TimingMode(" << int(enval) << ")";
+  }
+  return str << val;
+}
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::BasicTimingIdx enval) {
+  const char* val;
+  switch (enval) {
+  case Uxi::ConfigV4::Open:
+    val = "Open";
+    break;
+  case Uxi::ConfigV4::Closed:
+    val = "Closed";
+    break;
+  case Uxi::ConfigV4::Delay:
+    val = "Delay";
+    break;
+  default:
+    return str << "BasicTimingIdx(" << int(enval) << ")";
+  }
+  return str << val;
+}
 } // namespace Uxi
 } // namespace Pds

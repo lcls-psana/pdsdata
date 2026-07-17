@@ -424,6 +424,194 @@ std::ostream& operator<<(std::ostream& str, Uxi::ConfigV3::RoiMode enval);
 std::ostream& operator<<(std::ostream& str, Uxi::ConfigV3::OscMode enval);
 #pragma pack(pop)
 
+/** @class Register
+
+  
+*/
+
+
+class Register {
+public:
+  enum { NameSize = 128 /**< Length of the name array. */ };
+  Register(const char* arg__name, uint32_t arg__value)
+    : _value(arg__value)
+  {
+    if (arg__name) std::copy(arg__name, arg__name+(128), &_name[0]);
+  }
+  Register() {}
+  /** Name of the register. */
+  const char* name() const { return _name; }
+  /** Value for the register. */
+  uint32_t value() const { return _value; }
+  static uint32_t _sizeof() { return (((((0+(1*(NameSize)))+4)+4)-1)/4)*4; }
+private:
+  char	_name[NameSize];	/**< Name of the register. */
+  uint32_t	_value;	/**< Value for the register. */
+};
+
+/** @class ConfigV4
+
+  
+*/
+
+#pragma pack(push,4)
+
+class ConfigV4 {
+public:
+  enum { TypeId = Pds::TypeId::Id_UxiConfig /**< XTC type ID value (from Pds::TypeId class) */ };
+  enum { Version = 4 /**< XTC type version number */ };
+  enum { MaxTimingSequence = 40 /**< Defines the maximum length for a timing sequence. */ };
+  enum { MaxManualShutterSequence = 7 /**< Defines the maximum length for a manual shutter sequence. */ };
+  enum { NumberOfPots = 13 /**< Defines the number of potentiometers in the Icarus detector. */ };
+  enum { NumberOfSides = 2 };
+  enum RoiMode {
+    Off = 0,
+    On = 1,
+  };
+  enum OscMode {
+    RelaxationOsc = 0,
+    RingOscWithCaps = 1,
+    RingOscNoCaps = 2,
+    ExternalClock = 3,
+  };
+  enum TimingMode {
+    BasicTiming = 0,
+    ArbitraryTiming = 1,
+    ManualTiming = 2,
+  };
+  enum BasicTimingIdx {
+    Open = 0,
+    Closed = 1,
+    Delay = 2,
+  };
+  ConfigV4(Uxi::ConfigV4::RoiMode arg__roiEnable, const Uxi::RoiCoord& arg__roiRows, const Uxi::RoiCoord& arg__roiFrames, Uxi::ConfigV4::OscMode arg__oscillator, uint32_t arg__width, uint32_t arg__height, uint32_t arg__numberOfFrames, uint32_t arg__numberOfBytesPerPixel, uint32_t arg__sensorType, Uxi::ConfigV4::TimingMode arg__timingMode, const uint32_t* arg__timingSequence, uint32_t arg__readOnlyPots, const double* arg__pots, uint32_t arg__numberOfRegisters, const Uxi::Register* arg__registers);
+  ConfigV4(uint32_t numberOfRegisters)
+    : _numberOfRegisters(numberOfRegisters)
+  {
+  }
+  ConfigV4() {}
+  ConfigV4(const ConfigV4& other) {
+    const char* src = reinterpret_cast<const char*>(&other);
+    std::copy(src, src+other._sizeof(), reinterpret_cast<char*>(this));
+  }
+  ConfigV4& operator=(const ConfigV4& other) {
+    const char* src = reinterpret_cast<const char*>(&other);
+    std::copy(src, src+other._sizeof(), reinterpret_cast<char*>(this));
+    return *this;
+  }
+  /** Enable frame/row roi. */
+  Uxi::ConfigV4::RoiMode roiEnable() const { return Uxi::ConfigV4::RoiMode(_roiEnable); }
+  /** The first/last rows of the roi. */
+  const Uxi::RoiCoord& roiRows() const { return _roiRows; }
+  /** The first/last frames of the roi. */
+  const Uxi::RoiCoord& roiFrames() const { return _roiFrames; }
+  /** The oscillator to that the detector should use. */
+  Uxi::ConfigV4::OscMode oscillator() const { return Uxi::ConfigV4::OscMode(_oscillator); }
+  /** The width in pixels of each frame of the detector. */
+  uint32_t width() const { return _width; }
+  /** The height in pixels of each frame of the detector. */
+  uint32_t height() const { return _height; }
+  /** The number of frames produced by the detector. */
+  uint32_t numberOfFrames() const { return _numberOfFrames; }
+  /** The number of bytes for each pixel. */
+  uint32_t numberOFBytesPerPixel() const { return _numberOfBytesPerPixel; }
+  /** The sensor type ID. */
+  uint32_t sensorType() const { return _sensorType; }
+  /** Determines how the timing sequence should be interpreted. */
+  Uxi::ConfigV4::TimingMode timingMode() const { return Uxi::ConfigV4::TimingMode(_timingMode); }
+  /** Raw timing sequence as array of uint32_t, method is generally for internal use only, use timing() for access to the timing data
+
+    Note: this overloaded method accepts shared pointer argument which must point to an object containing
+    this instance, the returned ndarray object can be used even after this instance disappears. */
+  template <typename T>
+  ndarray<const uint32_t, 2> timingSequence(const boost::shared_ptr<T>& owner) const { 
+    const uint32_t* data = &_timingSequence[0][0];
+    return make_ndarray(boost::shared_ptr<const uint32_t>(owner, data), NumberOfSides, MaxTimingSequence);
+  }
+  /** Raw timing sequence as array of uint32_t, method is generally for internal use only, use timing() for access to the timing data
+
+    Note: this method returns ndarray instance which does not control lifetime
+    of the data, do not use returned ndarray after this instance disappears. */
+  ndarray<const uint32_t, 2> timingSequence() const { return make_ndarray(&_timingSequence[0][0], NumberOfSides, MaxTimingSequence); }
+  /** Bitmask to designate which pots should only be read and not written. */
+  uint32_t readOnlyPots() const { return _readOnlyPots; }
+  /** The values of the each of the pots in volts.
+
+    Note: this overloaded method accepts shared pointer argument which must point to an object containing
+    this instance, the returned ndarray object can be used even after this instance disappears. */
+  template <typename T>
+  ndarray<const double, 1> pots(const boost::shared_ptr<T>& owner) const { 
+    const double* data = &_pots[0];
+    return make_ndarray(boost::shared_ptr<const double>(owner, data), NumberOfPots);
+  }
+  /** The values of the each of the pots in volts.
+
+    Note: this method returns ndarray instance which does not control lifetime
+    of the data, do not use returned ndarray after this instance disappears. */
+  ndarray<const double, 1> pots() const { return make_ndarray(&_pots[0], NumberOfPots); }
+  /** Number of Register objects in this configuration. */
+  uint32_t numberOfRegisters() const { return _numberOfRegisters; }
+  /** Register configuration objects
+
+    Note: this overloaded method accepts shared pointer argument which must point to an object containing
+    this instance, the returned ndarray object can be used even after this instance disappears. */
+  template <typename T>
+  ndarray<const Uxi::Register, 1> registers(const boost::shared_ptr<T>& owner) const { 
+    ptrdiff_t offset=472;
+    const Uxi::Register* data = (const Uxi::Register*)(((char*)this)+offset);
+    return make_ndarray(boost::shared_ptr<const Uxi::Register>(owner, data), this->numberOfRegisters());
+  }
+  /** Register configuration objects
+
+    Note: this method returns ndarray instance which does not control lifetime
+    of the data, do not use returned ndarray after this instance disappears. */
+  ndarray<const Uxi::Register, 1> registers() const { ptrdiff_t offset=472;
+  const Uxi::Register* data = (const Uxi::Register*)(((char*)this)+offset);
+  return make_ndarray(data, this->numberOfRegisters()); }
+  /** Check if a pot is readonly. */
+  uint8_t potIsReadOnly(uint8_t i) const { return ((i<NumberOfPots) && (_readOnlyPots & (1<<i))) ? 1 : 0; }
+  /** Check if a pot was tuned. */
+  uint8_t potIsTuned(uint8_t i) const { return ((i<NumberOfPots) && (_readOnlyPots & (1<<(i+NumberOfPots)))) ? 1 : 0; }
+  /** calculate total number of pixels per frame. */
+  uint32_t numPixelsPerFrame() const { return this->width()*this->height(); }
+  /** calculate total number of pixels across all frames. */
+  uint32_t numPixels() const { return this->width()*this->height()*this->numberOfFrames(); }
+  /** Total size in bytes of the frame */
+  uint32_t frameSize() const;
+  /** Helper function for getting timing in v3 and earlier format. */
+  ndarray<const uint32_t, 1> timeArray(Uxi::ConfigV4::BasicTimingIdx idx) const;
+  /** High speed timing on parameter in ns for each side. Backwards compat helper to v3 and earlier. */
+  ndarray<const uint32_t, 1> timeOn() const;
+  /** High speed timing off parameter in ns for each side. Backwards compat helper to v3 and earlier. */
+  ndarray<const uint32_t, 1> timeOff() const;
+  /** High speed timing initial delay in ns for each side. Backwards compat helper to v3 and earlier. */
+  ndarray<const uint32_t, 1> delay() const;
+  /** Function that parses the timingSequence properly based on the timing method */
+  ndarray<const uint32_t, 1> timing(uint32_t side) const;
+  uint32_t _sizeof() const { return (((((((((((((((((4+(Uxi::RoiCoord::_sizeof()))+(Uxi::RoiCoord::_sizeof()))+4)+4)+4)+4)+4)+4)+4)+(4*(NumberOfSides)*(MaxTimingSequence)))+4)+(8*(NumberOfPots)))+4)+(Uxi::Register::_sizeof()*(this->numberOfRegisters())))+4)-1)/4)*4; }
+private:
+  uint32_t	_roiEnable;	/**< Enable frame/row roi. */
+  Uxi::RoiCoord	_roiRows;	/**< The first/last rows of the roi. */
+  Uxi::RoiCoord	_roiFrames;	/**< The first/last frames of the roi. */
+  uint32_t	_oscillator;	/**< The oscillator to that the detector should use. */
+  uint32_t	_width;	/**< The width in pixels of each frame of the detector. */
+  uint32_t	_height;	/**< The height in pixels of each frame of the detector. */
+  uint32_t	_numberOfFrames;	/**< The number of frames produced by the detector. */
+  uint32_t	_numberOfBytesPerPixel;	/**< The number of bytes for each pixel. */
+  uint32_t	_sensorType;	/**< The sensor type ID. */
+  uint32_t	_timingMode;	/**< Determines how the timing sequence should be interpreted. */
+  uint32_t	_timingSequence[NumberOfSides][MaxTimingSequence];	/**< Raw timing sequence as array of uint32_t, method is generally for internal use only, use timing() for access to the timing data */
+  uint32_t	_readOnlyPots;	/**< Bitmask to designate which pots should only be read and not written. */
+  double	_pots[NumberOfPots];	/**< The values of the each of the pots in volts. */
+  uint32_t	_numberOfRegisters;	/**< Number of Register objects in this configuration. */
+  //Uxi::Register	_registers[this->numberOfRegisters()];
+};
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::RoiMode enval);
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::OscMode enval);
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::TimingMode enval);
+std::ostream& operator<<(std::ostream& str, Uxi::ConfigV4::BasicTimingIdx enval);
+#pragma pack(pop)
+
 /** @class FrameV1
 
   
@@ -432,6 +620,7 @@ std::ostream& operator<<(std::ostream& str, Uxi::ConfigV3::OscMode enval);
 class ConfigV1;
 class ConfigV2;
 class ConfigV3;
+class ConfigV4;
 #pragma pack(push,2)
 
 class FrameV1 {
@@ -477,6 +666,14 @@ public:
     const uint16_t* data = (const uint16_t*)(((char*)this)+offset);
     return make_ndarray(boost::shared_ptr<const uint16_t>(owner, data), cfg.numberOfFrames(), cfg.height(), cfg.width());
   }
+  /**     Note: this overloaded method accepts shared pointer argument which must point to an object containing
+    this instance, the returned ndarray object can be used even after this instance disappears. */
+  template <typename T>
+  ndarray<const uint16_t, 3> frames(const Uxi::ConfigV4& cfg, const boost::shared_ptr<T>& owner) const { 
+    ptrdiff_t offset=16;
+    const uint16_t* data = (const uint16_t*)(((char*)this)+offset);
+    return make_ndarray(boost::shared_ptr<const uint16_t>(owner, data), cfg.numberOfFrames(), cfg.height(), cfg.width());
+  }
   /**     Note: this method returns ndarray instance which does not control lifetime
     of the data, do not use returned ndarray after this instance disappears. */
   ndarray<const uint16_t, 3> frames(const Uxi::ConfigV1& cfg) const { ptrdiff_t offset=16;
@@ -492,9 +689,15 @@ public:
   ndarray<const uint16_t, 3> frames(const Uxi::ConfigV3& cfg) const { ptrdiff_t offset=16;
   const uint16_t* data = (const uint16_t*)(((char*)this)+offset);
   return make_ndarray(data, cfg.numberOfFrames(), cfg.height(), cfg.width()); }
+  /**     Note: this method returns ndarray instance which does not control lifetime
+    of the data, do not use returned ndarray after this instance disappears. */
+  ndarray<const uint16_t, 3> frames(const Uxi::ConfigV4& cfg) const { ptrdiff_t offset=16;
+  const uint16_t* data = (const uint16_t*)(((char*)this)+offset);
+  return make_ndarray(data, cfg.numberOfFrames(), cfg.height(), cfg.width()); }
   static uint32_t _sizeof(const Uxi::ConfigV1& cfg) { return ((((16+(2*(cfg.numberOfFrames())*(cfg.height())*(cfg.width())))+2)-1)/2)*2; }
   static uint32_t _sizeof(const Uxi::ConfigV2& cfg) { return ((((16+(2*(cfg.numberOfFrames())*(cfg.height())*(cfg.width())))+2)-1)/2)*2; }
   static uint32_t _sizeof(const Uxi::ConfigV3& cfg) { return ((((16+(2*(cfg.numberOfFrames())*(cfg.height())*(cfg.width())))+2)-1)/2)*2; }
+  static uint32_t _sizeof(const Uxi::ConfigV4& cfg) { return ((((16+(2*(cfg.numberOfFrames())*(cfg.height())*(cfg.width())))+2)-1)/2)*2; }
 private:
   uint32_t	_acquisitionCount;	/**< The internal acquisition counter number of the detector. */
   uint32_t	_timestamp;	/**< The internal detector timestamp associated with the frames. */
