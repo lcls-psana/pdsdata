@@ -586,8 +586,12 @@ public:
   ndarray<const uint32_t, 1> timeOff() const;
   /** High speed timing initial delay in ns for each side. Backwards compat helper to v3 and earlier. */
   ndarray<const uint32_t, 1> delay() const;
+  /** Function that returns the valid length of the timingSequence based on the timing method */
+  uint32_t timingLength() const;
   /** Function that parses the timingSequence properly based on the timing method */
   ndarray<const uint32_t, 1> timing(uint32_t side) const;
+  /** Function that parses the timingSequence properly based on the timing method - 2D versio of timing function */
+  ndarray<const uint32_t, 2> timingArray() const;
   uint32_t _sizeof() const { return (((((((((((((((((4+(Uxi::RoiCoord::_sizeof()))+(Uxi::RoiCoord::_sizeof()))+4)+4)+4)+4)+4)+4)+4)+(4*(NumberOfSides)*(MaxTimingSequence)))+4)+(8*(NumberOfPots)))+4)+(Uxi::Register::_sizeof()*(this->numberOfRegisters())))+4)-1)/4)*4; }
 private:
   uint32_t	_roiEnable;	/**< Enable frame/row roi. */

@@ -139,30 +139,49 @@ ConfigV4::delay() const {
     return this->timeArray(Delay);
 
 }
-ndarray<const uint32_t, 1>
-ConfigV4::timing(uint32_t side) const {
+uint32_t
+ConfigV4::timingLength() const {
   
-    unsigned size = 0;
+    uint32_t size = 0;
     switch (this->timingMode()) {
     case  BasicTiming:
       size = 3;
       break;
     case ArbitraryTiming:
-      for (unsigned i=1; i<MaxTimingSequence; i++) {
-        size++;
-        if (this->timingSequence()(side, i) == 0) {
-          break;
-        }
-      }
+      size = MaxTimingSequence;
       break;
     case ManualTiming:
       size = MaxManualShutterSequence;
       break;
     }
+    return size;
+
+}
+ndarray<const uint32_t, 1>
+ConfigV4::timing(uint32_t side) const {
+  
+    uint32_t size = this->timingLength();
     if (size > 0) {
       return make_ndarray(this->timingSequence().data() + side * MaxTimingSequence, size);
     } else {
       return ndarray<const uint32_t, 1>();
+    }
+
+}
+ndarray<const uint32_t, 2>
+ConfigV4::timingArray() const {
+  
+    uint32_t size = this->timingLength();
+    if (size > 0) {
+      ndarray<uint32_t, 2> array = make_ndarray<uint32_t>(NumberOfSides, size);
+      for (uint32_t side=0; side<NumberOfSides; side++) {
+        const uint32_t* src = this->timingSequence().data() + (side * MaxTimingSequence);
+        uint32_t* dest = array.data() + (side * size);
+        std::copy(src, src + (size), dest);
+      }
+      return array;
+    } else {
+      return ndarray<const uint32_t, 2>();
     }
 
 }
