@@ -579,7 +579,7 @@ public:
   /** Total size in bytes of the frame */
   uint32_t frameSize() const;
   /** Helper function for getting timing in v3 and earlier format. */
-  ndarray<const uint32_t, 1> timeArray(Uxi::ConfigV4::BasicTimingIdx idx) const;
+  ndarray<const uint32_t, 1> timeArray(uint32_t idx) const;
   /** High speed timing on parameter in ns for each side. Backwards compat helper to v3 and earlier. */
   ndarray<const uint32_t, 1> timeOn() const;
   /** High speed timing off parameter in ns for each side. Backwards compat helper to v3 and earlier. */

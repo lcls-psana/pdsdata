@@ -106,7 +106,7 @@ ConfigV4::frameSize() const {
   return this->numPixels()*this->numberOFBytesPerPixel();
 }
 ndarray<const uint32_t, 1>
-ConfigV4::timeArray(Uxi::ConfigV4::BasicTimingIdx idx) const {
+ConfigV4::timeArray(uint32_t idx) const {
   
     ndarray<uint32_t,1> timeArray = make_ndarray<uint32_t>(NumberOfSides);
     if (this->timingMode() == BasicTiming) {
