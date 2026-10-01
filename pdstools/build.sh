@@ -32,7 +32,11 @@ make -C pdsdata GENDEVEL=1 gen
 CURRENTDIR="${PWD}"
 
 ARCH=`uname -r`
-if [[ $ARCH == *el7* ]]; then
+if [[ $ARCH == *el9* ]]; then
+    TGT="x86_64-rhel9"
+elif [[ $ARCH == *el8* ]]; then
+    TGT="x86_64-rhel8"
+elif [[ $ARCH == *el7* ]]; then
     TGT="x86_64-rhel7"
 elif [[ $ARCH == *el6* ]]; then
     TGT="x86_64-rhel6"

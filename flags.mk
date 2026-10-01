@@ -1,18 +1,24 @@
 # Architecture flags
 # ------------------
 arch_tgts :=
-arch_tgts_u := ppc-rtems-rce405 ppc-rtems-ml405 i386-linux x86_64-linux x86_64-rhel6 x86_64-rhel7 sparc-solaris
+arch_tgts_u := ppc-rtems-rce405 ppc-rtems-ml405 i386-linux x86_64-linux x86_64-rhel6 x86_64-rhel7 x86_64-rhel8 x86_64-rhel9 sparc-solaris
 arch_opts := opt dbg
 
 src_arch := $(shell uname -r)
+ifneq ($(findstring el9,$(src_arch)),)
+arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel6 x86_64-rhel7 x86_64-rhel8,$(arch_tgts_u))
+else
+ifneq ($(findstring el8,$(src_arch)),)
+arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel6 x86_64-rhel7 x86_64-rhel9,$(arch_tgts_u))
+else
 ifneq ($(findstring el7,$(src_arch)),)
-arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel6,$(arch_tgts_u))	
+arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel6 x86_64-rhel8 x86_64-rhel9,$(arch_tgts_u))
 else
 ifneq ($(findstring el6,$(src_arch)),)
-arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel7,$(arch_tgts_u))	
+arch_tgts_q := $(filter-out i386-linux x86_64-linux x86_64-rhel7 x86_64-rhel8 x86_64-rhel9,$(arch_tgts_u))
 else
 ifneq ($(findstring el5,$(src_arch)),)
-arch_tgts_q := $(filter-out x86_64-rhel6 x86_64-rhel7,$(arch_tgts_u))	
+arch_tgts_q := $(filter-out x86_64-rhel6 x86_64-rhel7 x86_64-rhel8 x86_64-rhel9,$(arch_tgts_u))
 else
 arch_tgts_q := $(arch_tgts_u)
 endif
