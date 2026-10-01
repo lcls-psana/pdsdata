@@ -330,7 +330,7 @@ ConfigV5::ConfigV5(uint32_t arg__neventcodes, uint32_t arg__npulses, uint32_t ar
   }
   {
     ptrdiff_t offset = ((12+(40*(this->_neventcodes)))+(16*(this->_npulses)))+(4*(this->_noutputs));
-    EvrData::OutputMap* data = reinterpret_cast<EvrData::OutputMap*>(((char*)this)+offset);
+    EvrData::SequencerConfigV1* data = reinterpret_cast<EvrData::SequencerConfigV1*>(((char*)this)+offset);
     new (data) SequencerConfigV1(arg__seq_config);
   }
 }
@@ -354,7 +354,7 @@ ConfigV6::ConfigV6(uint32_t arg__neventcodes, uint32_t arg__npulses, uint32_t ar
   }
   {
     ptrdiff_t offset = ((12+(40*(this->_neventcodes)))+(16*(this->_npulses)))+(4*(this->_noutputs));
-    EvrData::OutputMapV2* data = reinterpret_cast<EvrData::OutputMapV2*>(((char*)this)+offset);
+    EvrData::SequencerConfigV1* data = reinterpret_cast<EvrData::SequencerConfigV1*>(((char*)this)+offset);
     new (data) SequencerConfigV1(arg__seq_config);
   }
 }
@@ -378,7 +378,7 @@ ConfigV7::ConfigV7(uint32_t arg__neventcodes, uint32_t arg__npulses, uint32_t ar
   }
   {
     ptrdiff_t offset = ((12+(44*(this->_neventcodes)))+(16*(this->_npulses)))+(4*(this->_noutputs));
-    EvrData::OutputMapV2* data = reinterpret_cast<EvrData::OutputMapV2*>(((char*)this)+offset);
+    EvrData::SequencerConfigV1* data = reinterpret_cast<EvrData::SequencerConfigV1*>(((char*)this)+offset);
     new (data) SequencerConfigV1(arg__seq_config);
   }
 }

@@ -1,3 +1,4 @@
+2026-Sep-30 ddamiani    Tag V10-02-03.  Fix a bug with no side effects evr ddl that appears when using ddl compiler with python 3.
 2026-Jul-19 ddamiani    Tag V10-02-02.  Fix a compilation bug in psana with uxi ddl.
 2026-Jul-17 ddamiani    Tag V10-02-01.  Added timingArray helper function to ConfigV4 for Uxi.
 2026-Jul-16 ddamiani    Tag V10-02-00.  Added ConfigV4 for Uxi.
