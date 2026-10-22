@@ -55,7 +55,7 @@ static map<int16_t,string> pvMap;
 static map<int16_t,string> pvDescMap;
 static map<int16_t,string> pvUnitsMap;
 static map<int16_t,int16_t> pvPrecMap;
-static map<int16_t,vector<string>> pvEnumMap;
+static map<int16_t,vector<string> > pvEnumMap;
 
 class myLevelIter : public XtcIterator {
 public:
@@ -370,7 +370,7 @@ public:
       printf("\tname: %s (%s)\n", epicsCtrlPvHdr.pvName(), pvDescMap[epicsPv.pvId()].c_str());
       pvMap[epicsPv.pvId()] = epicsCtrlPvHdr.pvName();
       switch (epicsPv.dbrType()) {
-      case Epics::DbrTypes::DBR_CTRL_SHORT:
+      case Epics::DBR_CTRL_SHORT:
         {
           const Epics::EpicsPvCtrlShort& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlShort&>(epicsPv);
           const Epics::dbr_ctrl_short& dbr = epicsCtrlPv.dbr();
@@ -378,7 +378,7 @@ public:
           printf("\tunits: %s\n", dbr.units());
         }
         break;
-      case Epics::DbrTypes::DBR_CTRL_FLOAT:
+      case Epics::DBR_CTRL_FLOAT:
         {
           const Epics::EpicsPvCtrlFloat& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlFloat&>(epicsPv);
           const Epics::dbr_ctrl_float& dbr = epicsCtrlPv.dbr();
@@ -388,7 +388,7 @@ public:
           printf("\tprec: %d\n", dbr.precision());
         }
         break;
-      case Epics::DbrTypes::DBR_CTRL_ENUM:
+      case Epics::DBR_CTRL_ENUM:
         {
           const Epics::EpicsPvCtrlEnum& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlEnum&>(epicsPv);
           printf("\tenum strings:\n");
@@ -402,7 +402,7 @@ public:
           pvEnumMap[epicsPv.pvId()] = enumStrs;
         }
         break;
-      case Epics::DbrTypes::DBR_CTRL_CHAR:
+      case Epics::DBR_CTRL_CHAR:
         {
           const Epics::EpicsPvCtrlChar& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlChar&>(epicsPv);
           const Epics::dbr_ctrl_char& dbr = epicsCtrlPv.dbr();
@@ -410,7 +410,7 @@ public:
           printf("\tunits: %s\n", dbr.units());
         }
         break;
-      case Epics::DbrTypes::DBR_CTRL_LONG:
+      case Epics::DBR_CTRL_LONG:
         {
           const Epics::EpicsPvCtrlLong& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlLong&>(epicsPv);
           const Epics::dbr_ctrl_long& dbr = epicsCtrlPv.dbr();
@@ -418,7 +418,7 @@ public:
           printf("\tunits: %s\n", dbr.units());
         }
         break;
-      case Epics::DbrTypes::DBR_CTRL_DOUBLE:
+      case Epics::DBR_CTRL_DOUBLE:
         {
           const Epics::EpicsPvCtrlDouble& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlDouble&>(epicsPv);
           const Epics::dbr_ctrl_double& dbr = epicsCtrlPv.dbr();
@@ -436,7 +436,7 @@ public:
       printf("\ttimestamp: %u sec, %u nsec\n", ts.sec(), ts.nsec());
       /* data type specific handling */
       switch (epicsPv.dbrType()) {
-      case Epics::DbrTypes::DBR_TIME_STRING:
+      case Epics::DBR_TIME_STRING:
         {
           const Epics::EpicsPvTimeString& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeString&>(epicsPv);
           printf("\tvalue:\n");
@@ -445,7 +445,7 @@ public:
           }
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_SHORT:
+      case Epics::DBR_TIME_SHORT:
         {
           const Epics::EpicsPvTimeShort& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeShort&>(epicsPv);
           printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
@@ -457,7 +457,7 @@ public:
           printf("\n");
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_FLOAT:
+      case Epics::DBR_TIME_FLOAT:
         {
           const Epics::EpicsPvTimeFloat& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeFloat&>(epicsPv);
           printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
@@ -470,7 +470,7 @@ public:
           printf("\n");
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_ENUM:
+      case Epics::DBR_TIME_ENUM:
         {
           const Epics::EpicsPvTimeEnum& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeEnum&>(epicsPv);
           printf("\tvalue:");
@@ -486,7 +486,7 @@ public:
           printf("\n");
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_CHAR:
+      case Epics::DBR_TIME_CHAR:
         {
           const Epics::EpicsPvTimeChar& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeChar&>(epicsPv);
           printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
@@ -494,7 +494,7 @@ public:
           printf("\tvalue: %s\n", (const char*) data.data());
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_LONG:
+      case Epics::DBR_TIME_LONG:
         {
           const Epics::EpicsPvTimeLong& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeLong&>(epicsPv);
           printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
@@ -506,7 +506,7 @@ public:
           printf("\n");
         }
         break;
-      case Epics::DbrTypes::DBR_TIME_DOUBLE:
+      case Epics::DBR_TIME_DOUBLE:
         {
           const Epics::EpicsPvTimeDouble& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeDouble&>(epicsPv);
           printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
