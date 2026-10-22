@@ -5,7 +5,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <map>
+#include <vector>
 #include <string>
+#include <sstream>
 
 #include "pdsdata/xtc/DetInfo.hh"
 #include "pdsdata/xtc/ProcInfo.hh"
@@ -44,10 +46,16 @@ static unsigned eventCount = 0;
 
 using namespace Pds;
 using std::map;
+using std::vector;
 using std::string;
 using Pds::Alias::SrcAlias;
 
 static map<Src,string> aliasMap;
+static map<int16_t,string> pvMap;
+static map<int16_t,string> pvDescMap;
+static map<int16_t,string> pvUnitsMap;
+static map<int16_t,int16_t> pvPrecMap;
+static map<int16_t,vector<string>> pvEnumMap;
 
 class myLevelIter : public XtcIterator {
 public:
@@ -346,6 +354,173 @@ public:
   void process(const DetInfo&, const Epics::EpicsPvHeader& epicsPv)
   {    
     printf("*** Processing Epics object\n");
+    printf("\tpvid: %d\n", epicsPv.pvId());
+    // c++ stream operator for dbrTypes so use that...
+    std::stringstream dbrss;
+    dbrss << static_cast<Epics::DbrTypes>(epicsPv.dbrType());
+    std::string dbrstr = dbrss.str();
+    printf("\tdbrType: %d (%s)\n", epicsPv.dbrType(), dbrstr.c_str());
+    printf("\tnumElements: %d\n", epicsPv.numElements());
+    printf("\tisCtrl: %u\n", epicsPv.isCtrl());
+    printf("\tisTime: %u\n", epicsPv.isTime());
+    printf("\tstatus: %u\n", epicsPv.status());
+    printf("\tseverity: %u\n", epicsPv.severity());
+    if (epicsPv.isCtrl()) {
+      const Epics::EpicsPvCtrlHeader epicsCtrlPvHdr = reinterpret_cast<const Epics::EpicsPvCtrlHeader&>(epicsPv);
+      printf("\tname: %s (%s)\n", epicsCtrlPvHdr.pvName(), pvDescMap[epicsPv.pvId()].c_str());
+      pvMap[epicsPv.pvId()] = epicsCtrlPvHdr.pvName();
+      switch (epicsPv.dbrType()) {
+      case Epics::DbrTypes::DBR_CTRL_SHORT:
+        {
+          const Epics::EpicsPvCtrlShort& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlShort&>(epicsPv);
+          const Epics::dbr_ctrl_short& dbr = epicsCtrlPv.dbr();
+          pvUnitsMap[epicsPv.pvId()] = dbr.units();
+          printf("\tunits: %s\n", dbr.units());
+        }
+        break;
+      case Epics::DbrTypes::DBR_CTRL_FLOAT:
+        {
+          const Epics::EpicsPvCtrlFloat& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlFloat&>(epicsPv);
+          const Epics::dbr_ctrl_float& dbr = epicsCtrlPv.dbr();
+          pvUnitsMap[epicsPv.pvId()] = dbr.units();
+          pvPrecMap[epicsPv.pvId()] = dbr.precision();
+          printf("\tunits: %s\n", dbr.units());
+          printf("\tprec: %d\n", dbr.precision());
+        }
+        break;
+      case Epics::DbrTypes::DBR_CTRL_ENUM:
+        {
+          const Epics::EpicsPvCtrlEnum& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlEnum&>(epicsPv);
+          printf("\tenum strings:\n");
+          const Epics::dbr_ctrl_enum& dbr = epicsCtrlPv.dbr();
+          /* cache the enum strings to use during events */
+          vector<string> enumStrs(dbr.no_str());
+          for (int16_t i=0; i<dbr.no_str(); i++) {
+            enumStrs[i] = dbr.strings(i);
+            printf("\t\t%s\n", dbr.strings(i));
+          }
+          pvEnumMap[epicsPv.pvId()] = enumStrs;
+        }
+        break;
+      case Epics::DbrTypes::DBR_CTRL_CHAR:
+        {
+          const Epics::EpicsPvCtrlChar& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlChar&>(epicsPv);
+          const Epics::dbr_ctrl_char& dbr = epicsCtrlPv.dbr();
+          pvUnitsMap[epicsPv.pvId()] = dbr.units();
+          printf("\tunits: %s\n", dbr.units());
+        }
+        break;
+      case Epics::DbrTypes::DBR_CTRL_LONG:
+        {
+          const Epics::EpicsPvCtrlLong& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlLong&>(epicsPv);
+          const Epics::dbr_ctrl_long& dbr = epicsCtrlPv.dbr();
+          pvUnitsMap[epicsPv.pvId()] = dbr.units();
+          printf("\tunits: %s\n", dbr.units());
+        }
+        break;
+      case Epics::DbrTypes::DBR_CTRL_DOUBLE:
+        {
+          const Epics::EpicsPvCtrlDouble& epicsCtrlPv = reinterpret_cast<const Epics::EpicsPvCtrlDouble&>(epicsPv);
+          const Epics::dbr_ctrl_double& dbr = epicsCtrlPv.dbr();
+          pvUnitsMap[epicsPv.pvId()] = dbr.units();
+          pvPrecMap[epicsPv.pvId()] = dbr.precision();
+          printf("\tunits: %s\n", dbr.units());
+          printf("\tprec: %d\n", dbr.precision());
+        }
+        break;
+      }
+    } else if (epicsPv.isTime()) {
+      printf("\tname: %s (%s)\n", pvMap[epicsPv.pvId()].c_str(), pvDescMap[epicsPv.pvId()].c_str());
+      const Epics::EpicsPvTimeHeader& epicsTimePvHdr = reinterpret_cast<const Epics::EpicsPvTimeHeader&>(epicsPv);
+      Epics::epicsTimeStamp ts = epicsTimePvHdr.stamp();
+      printf("\ttimestamp: %u sec, %u nsec\n", ts.sec(), ts.nsec());
+      /* data type specific handling */
+      switch (epicsPv.dbrType()) {
+      case Epics::DbrTypes::DBR_TIME_STRING:
+        {
+          const Epics::EpicsPvTimeString& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeString&>(epicsPv);
+          printf("\tvalue:\n");
+          for (int i=0; i<epicsPv.numElements(); i++) {
+            printf("\t\t%s\n", epicsTimePv.data(i));
+          }
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_SHORT:
+        {
+          const Epics::EpicsPvTimeShort& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeShort&>(epicsPv);
+          printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
+          printf("\tvalue:");
+          ndarray<const int16_t, 1> data = epicsTimePv.data();
+          for(const int16_t* val=data.begin(); val!=data.end(); val++) {
+            printf(" %d", *val);
+          }
+          printf("\n");
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_FLOAT:
+        {
+          const Epics::EpicsPvTimeFloat& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeFloat&>(epicsPv);
+          printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
+          printf("\tprec: %d\n", pvPrecMap[epicsPv.pvId()]);
+          printf("\tvalue:");
+          ndarray<const float, 1> data = epicsTimePv.data();
+          for(const float* val=data.begin(); val!=data.end(); val++) {
+            printf(" %.*f", pvPrecMap[epicsPv.pvId()], *val);
+          }
+          printf("\n");
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_ENUM:
+        {
+          const Epics::EpicsPvTimeEnum& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeEnum&>(epicsPv);
+          printf("\tvalue:");
+          ndarray<const uint16_t, 1> data = epicsTimePv.data();
+          vector<string> enumStrs = pvEnumMap[epicsPv.pvId()];
+          for(const uint16_t* val=data.begin(); val!=data.end(); val++) {
+            if (*val < enumStrs.size()) {
+              printf(" %s (%u)", enumStrs[*val].c_str(), *val);
+            } else {
+              printf(" %u", *val);
+            }
+          }
+          printf("\n");
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_CHAR:
+        {
+          const Epics::EpicsPvTimeChar& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeChar&>(epicsPv);
+          printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
+          ndarray<const uint8_t, 1> data = epicsTimePv.data();
+          printf("\tvalue: %s\n", (const char*) data.data());
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_LONG:
+        {
+          const Epics::EpicsPvTimeLong& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeLong&>(epicsPv);
+          printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
+          printf("\tvalue:");
+          ndarray<const int32_t, 1> data = epicsTimePv.data();
+          for(const int32_t* val=data.begin(); val!=data.end(); val++) {
+            printf(" %d", *val);
+          }
+          printf("\n");
+        }
+        break;
+      case Epics::DbrTypes::DBR_TIME_DOUBLE:
+        {
+          const Epics::EpicsPvTimeDouble& epicsTimePv = reinterpret_cast<const Epics::EpicsPvTimeDouble&>(epicsPv);
+          printf("\tunits: %s\n", pvUnitsMap[epicsPv.pvId()].c_str());
+          printf("\tprec: %d\n", pvPrecMap[epicsPv.pvId()]);
+          printf("\tvalue:");
+          ndarray<const double, 1> data = epicsTimePv.data();
+          for(const double* val=data.begin(); val!=data.end(); val++) {
+            printf(" %.*f", pvPrecMap[epicsPv.pvId()], *val);
+          }
+          printf("\n");
+        }
+        break;
+      }
+    }
     //    epicsPv.printPv();
     printf( "\n" );
   }
@@ -2039,7 +2214,6 @@ public:
     printf("\tnpixels per frame: %u\n", uxiConfig.numPixelsPerFrame());
     printf("\tnpixels total: %u\n", uxiConfig.numPixels());
     printf("\tframe size: %u\n", uxiConfig.frameSize());
-
   }
   void process(const DetInfo &, const Uxi::FrameV1 &uxiFrame)
   {
@@ -2047,6 +2221,17 @@ public:
     printf("\tframeid: %u\n", uxiFrame.acquisitionCount());
     printf("\ttimestamp: %u\n", uxiFrame.timestamp());
     printf("\ttemperature: %g\n", uxiFrame.temperature());
+  }
+  void process(const DetInfo &, const Epics::ConfigV1 &epicsConfig)
+  {
+    printf("*** Processing Epics::ConfigV1 object\n");
+    printf("\tnum pvs: %u\n", epicsConfig.numPv());
+    printf("\tpv info (desc: pvid, interval):\n");
+    ndarray<const Epics::PvConfigV1, 1> pvConfigs = epicsConfig.getPvConfig();
+    for (unsigned i=0; i<pvConfigs.shape()[0]; i++) {
+      pvDescMap[pvConfigs[i].pvId()] = pvConfigs[i].description();
+      printf("\t\t%s: %d, %.3f\n", pvConfigs[i].description(), pvConfigs[i].pvId(), pvConfigs[i].interval());
+    }
   }
   int process(Xtc* xtc) {
     unsigned      i         =_depth; while (i--) printf("  ");
@@ -2809,6 +2994,19 @@ public:
         break;
       default:
         printf("Unsupported UxiFrame version %d\n", version);
+        break;
+      }
+      break;
+    }
+    case (TypeId::Id_EpicsConfig):
+    {
+      unsigned version = xtc->contains.version();
+      switch (version) {
+      case 1:
+        process(info, *(const Epics::ConfigV1*)(xtc->payload()));
+        break;
+      default:
+        printf("Unsupported Epics Config version %d\n", version);
         break;
       }
       break;
